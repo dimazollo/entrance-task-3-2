@@ -1,5 +1,5 @@
 const fs = require('fs');
-const Schedule = require('./resultData')
+const Schedule = require('./schedule')
 
 function readData (inputFilePath) {
   const fileContent = fs.readFileSync(inputFilePath, 'utf-8');
