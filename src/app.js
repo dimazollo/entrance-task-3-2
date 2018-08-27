@@ -1,21 +1,13 @@
-const fs = require('fs');
-const Schedule = require('./schedule')
-
-function readData (inputFilePath) {
-  const fileContent = fs.readFileSync(inputFilePath, 'utf-8');
-  return JSON.parse(fileContent)
-}
-
-function writeData (outputFilePath, dataObject) {
-  const dataJson = JSON.stringify(dataObject)
-  fs.writeFileSync(outputFilePath, dataJson)
-}
-
+const Schedule = require('./schedule');
+const dataio = require('./dataio');
+const deviceUtils = require('./devices');
 
 (
-  function main() {
-    const data = readData('./data/input.json')
+  function () {
+    const data = dataio.readData('./data/input.json')
     const { devices, rates, maxPower } = data
+
+    const devicesSet = new Set(devices)
 
     const resultData = {
       schedule: {},
@@ -25,9 +17,35 @@ function writeData (outputFilePath, dataObject) {
       }
     }
 
-    const schedule = new Schedule(rates)
+    // Init schedule object
+    const schedule = new Schedule(rates, maxPower)
+    // посмотреть устройства с наименьшим количеством вариантов размещения
+    const staticDevices = deviceUtils.getStaticDevices(devicesSet)
+    // console.log(staticDevices)
 
-    // writeData('./data/output.json', resultData)
+    // добавить в расписание все устройства с 1 вариантом размещения
+    staticDevices.forEach(device => {
+      schedule.addDeviceToZone(0, 24, device)
+    })
+    staticDevices.forEach(device => {
+      devicesSet.delete(device)
+    })
+    console.log(schedule)
+
+    // найти устройства с максимальным энергопотреблением
+    while (devicesSet.size > 0) {
+      let device = deviceUtils.getMostGreedyDevice([...devicesSet])
+      // найти наиболее дешевую зону для устройства
+      let zone = schedule.getMostEfficientZone(device.duration, device.power, device.mode)
+      // добавить устройство с максимальным энергопотреблением в самую дешевую зоны
+      schedule.addDeviceToZone(zone.from, zone.to, device)
+      devicesSet.delete(device)
+    }
+    // TODO поиск самой дешевой зоны по критериям - длительность, остаточная вместимость
+    //
+    // console.log(schedule)
+    // dataio.writeData('./data/output.json', resultData)
+    dataio.writeData('./data/output.json', schedule)
   }
 )()
 
@@ -46,17 +64,4 @@ function getFreeMinimalRate (schedule, maxPower, mode) {
   schedule.forEach(element => {
 
   })
-}
-
-// Calculate the number of allocation variants of the device in the schedule
-function calculateVariations (device) {
-  if (device.mode === 'night') {
-    const nightDuration = 10
-    return nightDuration - device.duration + 1
-  } else if (device.mode === 'day') {
-    const dayDuration = 14
-    return dayDuration - device.duration + 1
-  } else if (device.mode === undefined) {
-    return device.duration < 24 ? 24 : 1
-  }
 }
