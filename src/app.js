@@ -47,3 +47,16 @@ function getFreeMinimalRate (schedule, maxPower, mode) {
 
   })
 }
+
+// Calculate the number of allocation variants of the device in the schedule
+function calculateVariations (device) {
+  if (device.mode === 'night') {
+    const nightDuration = 10
+    return nightDuration - device.duration + 1
+  } else if (device.mode === 'day') {
+    const dayDuration = 14
+    return dayDuration - device.duration + 1
+  } else if (device.mode === undefined) {
+    return device.duration < 24 ? 24 : 1
+  }
+}
