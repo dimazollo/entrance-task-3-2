@@ -22,13 +22,11 @@ module.exports = class Schedule {
     }
   }
 
-
   forEach (callback) {
     for (let i = 0; i < 24; i++) {
       callback(this[i], i, this)
     }
   }
-
 
   applyToRange(from, to, callback) {
     if (from > to) {
@@ -117,16 +115,5 @@ module.exports = class Schedule {
     this.applyToRange(from, to, element => {
       element.devices.push(device)
     })
-  }
-}
-
-// FIXME
-class ResultData {
-  constructor () {
-    this.schedule = {}
-    this.consumedEnergy = {
-      value: 0,
-      devices: {}
-    }
   }
 }
