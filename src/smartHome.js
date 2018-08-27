@@ -22,7 +22,7 @@ module.exports = function smartHome (inputFilePath, outputFilePath) {
     devicesSet.delete(device)
   })
 
-  // While there are not scheduled devices
+  // While there are devices not scheduled yet
   while (devicesSet.size > 0) {
     // Find the most greedy device
     let device = deviceUtils.getMostGreedyDevice([...devicesSet])
